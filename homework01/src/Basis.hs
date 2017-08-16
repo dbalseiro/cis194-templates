@@ -70,7 +70,7 @@ sumNumber = foldr (+) 0 . toDigits
 -- False
 
 validate :: Integer -> Bool
-validate = undefined
+validate i = sumDigits (doubleEveryOther (toDigits i)) `mod` 10 == 0
 
 ----------------------------------------------------------------------
 -- Exercise 5
@@ -85,7 +85,14 @@ type Move = (Peg, Peg)
 -- [("a","c"),("a","b"),("c","b")]
 
 hanoi :: Integer -> Peg -> Peg -> Peg -> [Move]
-hanoi = undefined
+hanoi n a b c = performMove n a c b
+
+performMove :: Integer -> Peg -> Peg -> Peg -> [Move]
+performMove 0 _ _ _ = []
+performMove n from to using = 
+    (performMove (n-1) from using to) ++
+    [(from, to)] ++
+    (performMove (n-1) using to from)
 
 ----------------------------------------------------------------------
 -- Exercise 6 (Optional)
