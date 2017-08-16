@@ -20,8 +20,13 @@ module Basis where
 -- >>> toDigits (-17)
 -- []
 
+toDigitsRev :: Integer -> [Integer]
+toDigitsRev n
+    | n == 0 = []
+    | otherwise = n `mod` 10 : toDigitsRev (n `div` 10) 
+
 toDigits :: Integer -> [Integer]
-toDigits = undefined
+toDigits = reverse . toDigitsRev
 
 ----------------------------------------------------------------------
 -- Exercise 2
@@ -35,7 +40,9 @@ toDigits = undefined
 -- [1,4,3]
 
 doubleEveryOther :: [Integer] -> [Integer]
-doubleEveryOther = undefined
+doubleEveryOther l = 
+    reverse $ map (\x -> if (fst x) `mod` 2 == 0 then snd x else (snd x) * 2) (zip [0..] (reverse l))
+
 
 ----------------------------------------------------------------------
 -- Exercise 3
@@ -47,8 +54,10 @@ doubleEveryOther = undefined
 -- 22
 
 sumDigits :: [Integer] -> Integer
-sumDigits = undefined
+sumDigits = foldr (\acum x -> acum + (sumNumber x)) 0
 
+sumNumber :: Integer -> Integer
+sumNumber = foldr (+) 0 . toDigits
 ----------------------------------------------------------------------
 -- Exercise 4
 ----------------------------------------------------------------------
