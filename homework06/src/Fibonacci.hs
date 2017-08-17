@@ -12,10 +12,12 @@ module Fibonacci where
 ----------------------------------------------------------------------
 
 fib :: Integer -> Integer
-fib = undefined
+fib 0 = 1
+fib 1 = 1
+fib n = (fib (n-1)) + (fib (n-2))
 
 fibs1 :: [Integer]
-fibs1 = undefined
+fibs1 = map fib [0..]
 
 
 ----------------------------------------------------------------------
@@ -23,17 +25,19 @@ fibs1 = undefined
 ----------------------------------------------------------------------
 
 fibs2 :: [Integer]
-fibs2 = undefined
-
+fibs2 = map snd $ iterate (\(a,b) -> (b, a+b)) (0,1)
 
 ----------------------------------------------------------------------
 -- Exercise 3
 ----------------------------------------------------------------------
 
-data Stream a
+data Stream a = Stream a (Stream a)
+
+instance Show a => Show (Stream a) where
+    show = show . take 20 . streamToList
 
 streamToList :: Stream a -> [a]
-streamToList = undefined
+streamToList (Stream head tail) = head:(streamToList tail)
 
 
 ----------------------------------------------------------------------
@@ -41,13 +45,13 @@ streamToList = undefined
 ----------------------------------------------------------------------
 
 streamRepeat :: a -> Stream a
-streamRepeat = undefined
+streamRepeat x = Stream x (streamRepeat x)
 
 streamMap :: (a -> b) -> Stream a -> Stream b
-streamMap = undefined
+streamMap f (Stream head tail) = Stream (f head) (streamMap f tail)
 
 streamFromSeed :: (a -> a) -> a -> Stream a
-streamFromSeed = undefined
+streamFromSeed f seed = Stream (f seed) (streamFromSeed f (f seed))
 
 
 ----------------------------------------------------------------------
@@ -55,11 +59,17 @@ streamFromSeed = undefined
 ----------------------------------------------------------------------
 
 nats :: Stream Integer
-nats = undefined
+nats = streamFromSeed (+1) (-1)
+
+odds :: Stream Integer
+odds = streamFromSeed (+2) (-1)
+
+interleaveStreams :: Stream a -> Stream a -> Stream a
+interleaveStreams (Stream head1 tail1) stream2 = 
+    Stream head1 (interleaveStreams stream2 tail1)
 
 ruler :: Stream Integer
-ruler = undefined
-
+ruler = foldr interleaveStreams (streamRepeat 0) (map streamRepeat [1..])
 
 ----------------------------------------------------------------------
 -- Exercise 6 (Optional)
