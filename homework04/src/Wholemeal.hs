@@ -35,10 +35,13 @@ fun2 n
 -- False
 
 fun1' :: [Integer] -> Integer
-fun1' = undefined
+fun1' = product . map (\x -> x - 2) . filter even
 
 fun2' :: Integer -> Integer
-fun2' = undefined
+fun2' = sum . filter even . takeWhile (> 1) . iterate (\x ->
+    if even x
+        then x `div` 2
+        else 3 * x + 1)
 
 ----------------------------------------------------------------------
 -- Exercise 2
@@ -50,9 +53,21 @@ data Tree a =
     deriving (Show, Eq)
 
 foldTree :: [a] -> Tree a
-foldTree = undefined
+foldTree = foldr insertNode Leaf
 
-----------------------------------------------------------------------
+-- i did it with wheight
+insertNode :: a -> Tree a -> Tree a
+insertNode a Leaf = Node 1 Leaf a Leaf
+insertNode a (Node w left x right)
+    | weight left > weight right = Node (w+1) left x (insertNode a right)
+    | otherwise = Node (w+1) (insertNode a left) x right
+  where
+    weight :: Tree a -> Integer
+    weight Leaf = 0
+    weight (Node w _ _ _) = w
+
+
+---------------------------------------------------------------------
 -- Exercise 3
 ----------------------------------------------------------------------
 
@@ -64,7 +79,7 @@ foldTree = undefined
 -- False
 
 xor :: [Bool] -> Bool
-xor = undefined
+xor = foldr (\x b -> if b then not x else x) False
 
 -- |
 --
@@ -72,7 +87,7 @@ xor = undefined
 -- [2,3,4]
 
 map' :: (a -> b) -> [a] -> [b]
-map' = undefined
+map' f = foldr (\x acum -> f (x:acc) []
 
 -- Optional
 
