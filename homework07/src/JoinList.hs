@@ -23,7 +23,10 @@ data JoinList m a = Empty
 (+++) = undefined
 
 tag :: Monoid m => JoinList m a -> m
-tag = undefined
+tag Empty = mempty
+tag (Single m _) = m
+tag (Append m _ _) = m
+
 
 
 ----------------------------------------------------------------------
