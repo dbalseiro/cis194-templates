@@ -31,16 +31,49 @@ moreFun guestList1 guestList2
 ----------------------------------------------------------------------
 -- Exercise 2
 ----------------------------------------------------------------------
+-- draw employees (testing purposes only)
+drawEmployees :: Tree Employee -> IO()
+drawEmployees = putStr . drawTree . fmap empName
 
-
-
+foldTree' :: (a -> [b] -> b) -> b -> Tree a -> b
+foldTree' f initialValue (Node x treeList) = 
+    --apply function to
+    --  node value as first par
+    --  a list of something as second param
+    --  returns a something
+    f x (map (foldTree' f initialValue) treeList)
 ----------------------------------------------------------------------
 -- Exercise 3
 ----------------------------------------------------------------------
 
 nextLevel :: Employee -> [(GuestList, GuestList)] -> (GuestList, GuestList)
-nextLevel = undefined
+nextLevel boss guestListsPaired =
+    let 
+        -- this is the original list with (sub)bosses
+        originalWithBosses = map fst guestListsPaired 
 
+        --this is the original without bosses or boss
+        originalWithoutBosses = map snd guestListsPaired
+
+        -- Add the boss to the original list without (sub)bosses
+        partialWithBosses = map (glCons boss) originalWithBosses
+
+        -- Add the boss to the original list without (sub)bosses
+        partialWithoutBosses = map (glCons boss) originalWithoutBosses
+
+        -- the list whithout the boss is the concatenation of the two original
+        -- lists
+        listWithoutBoss = originalWithBosses ++ originalWithoutBosses
+
+        -- the same whith the list with the boss applied
+        listWithBoss = partialWithBosses ++ partialWithoutBosses
+    in
+        --returns the best two (with and without the boss
+        (best listWithBoss, best listWithoutBoss)
+    where
+        best :: [GuestList] -> GuestList
+        best [] = mempty
+        best guestsList = maximum guestsList
 
 ----------------------------------------------------------------------
 -- Exercise 4
