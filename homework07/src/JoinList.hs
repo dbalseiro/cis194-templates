@@ -102,8 +102,7 @@ scoreLine s = Single (scoreString s) s
 instance Buffer (JoinList (Score, Size) String) where
     toString = foldr (++) "" . jlToList
     
-    fromString s = foldr (+++) Empty (map 
-        (\line -> Single (scoreString line, Size 1) line) $ lines s)
+    fromString s = foldr (+++) Empty (map (\aLine -> Single (scoreString aLine, Size 1) aLine) $ lines s)
     
     line = indexJ
 
@@ -117,9 +116,10 @@ instance Buffer (JoinList (Score, Size) String) where
 main :: IO()
 main = runEditor editor dataJoinList
 
+dataJoinList :: JoinList (Score, Size) String
 dataJoinList = fromString $ unlines
          [ "This buffer is for notes you don't want to save, and for"
          , "evaluation of steam valve coefficients."
          , "To load a different file, type the character L followed"
          , "by the name of the file."
-         ]::Buffer (JoinList (Score, Size) String)
+         ]
