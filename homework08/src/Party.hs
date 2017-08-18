@@ -3,7 +3,6 @@
 -- |
 --
 -- CIS 194 Spring 2013: Homework 08
---
 ----------------------------------------------------------------------
 
 module Party where
@@ -16,18 +15,17 @@ import Data.Tree
 ----------------------------------------------------------------------
 
 glCons :: Employee -> GuestList -> GuestList
-glCons employee (GL empList fun) = 
-    GL (employee:empList) (fun + (empFun employee))
+glCons employee (GL empList fun) =
+    GL (employee:empList) (fun + empFun employee)
 
 instance Monoid GuestList where
     mempty = GL [] 0
     mappend (GL list1 fun1) (GL list2 fun2) = GL (list1 ++ list2) (fun1 + fun2)
 
 moreFun :: GuestList -> GuestList -> GuestList
-moreFun guestList1 guestList2 
+moreFun guestList1 guestList2
     | guestList1 > guestList2 = guestList1
     | otherwise = guestList2
-
 ----------------------------------------------------------------------
 -- Exercise 2
 ----------------------------------------------------------------------
@@ -36,7 +34,7 @@ drawEmployees :: Tree Employee -> IO()
 drawEmployees = putStr . drawTree . fmap empName
 
 foldTree' :: (a -> [b] -> b) -> b -> Tree a -> b
-foldTree' f initialValue (Node x treeList) = 
+foldTree' f initialValue (Node x treeList) =
     --apply function to
     --  node value as first par
     --  a list of something as second param
@@ -48,15 +46,15 @@ foldTree' f initialValue (Node x treeList) =
 
 nextLevel :: Employee -> [(GuestList, GuestList)] -> (GuestList, GuestList)
 nextLevel boss guestListsPaired =
-    let 
+    let
         -- this is the original list with (sub)bosses
-        originalWithBosses = map fst guestListsPaired 
+        originalWithBosses = map fst guestListsPaired
 
         --this is the original without bosses or boss
         originalWithoutBosses = map snd guestListsPaired
 
         -- Add the boss to the original list without (sub)bosses
-        partialWithBosses = map (glCons boss) originalWithBosses
+        partialWithBosses = [] --map (glCons boss) originalWithBosses
 
         -- Add the boss to the original list without (sub)bosses
         partialWithoutBosses = map (glCons boss) originalWithoutBosses
@@ -80,8 +78,7 @@ nextLevel boss guestListsPaired =
 ----------------------------------------------------------------------
 
 maxFun :: Tree Employee -> GuestList
-maxFun = undefined
-
+maxFun = uncurry moreFun .foldTree' nextLevel mempty
 
 ----------------------------------------------------------------------
 -- Exercise 5
