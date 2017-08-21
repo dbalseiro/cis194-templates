@@ -10,6 +10,8 @@ module Party where
 import Employee
 import Data.Tree
 
+import Data.List
+
 ----------------------------------------------------------------------
 -- Exercise 1
 ----------------------------------------------------------------------
@@ -83,6 +85,16 @@ maxFun = uncurry moreFun .foldTree' nextLevel mempty
 ----------------------------------------------------------------------
 -- Exercise 5
 ----------------------------------------------------------------------
+getFun :: GuestList -> Fun
+getFun (GL _ fun) = fun
+
+orderedGuestList :: GuestList -> [String]
+orderedGuestList (GL empList fun) =
+    ("Total Fun: " ++ show fun) : sort (map empName empList)
 
 main :: IO ()
-main = undefined
+main = do
+    contents <- readFile "company.txt"
+    let tree = read contents :: Tree Employee
+        finalList = maxFun tree
+     in putStr $ unlines $ orderedGuestList finalList
