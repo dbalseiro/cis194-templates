@@ -13,10 +13,13 @@ module AParser where
 import Control.Applicative
 import Data.Char
 
+import Control.Arrow
 
 newtype Parser a =
   Parser { runParser :: String -> Maybe (a, String) }
 
+data Example = Example Integer Char
+  deriving Show
 
 -- |
 --
@@ -55,15 +58,19 @@ posInt = Parser f
 ----------------------------------------------------------------------
 -- Exercise 1
 ----------------------------------------------------------------------
+    -- newtype Parser a =
+    --   Parser { runParser :: String -> Maybe (a, String) }
 
 instance Functor Parser where
   fmap :: (a -> b) -> Parser a -> Parser b
-  fmap = undefined
+  fmap transformer (Parser pFunc) = Parser (fmap (first transformer) . pFunc)
+    -- = Parser (\str -> first transformer <$> parserFunc str)
 
-
-first :: (a -> b) -> (a, c) -> (b, c)
-first = undefined
-
+    -- where
+    --    newParserFunc str = first transformer <$> parserFunc str
+            --case parserFunc str of
+            --  Nothing -> Nothing
+            --  Just (parsedResult, restString) -> Just (transformer parsedResult, restString)
 
 ----------------------------------------------------------------------
 -- Exercise 2
@@ -71,11 +78,13 @@ first = undefined
 
 instance Applicative Parser where
   pure :: a -> Parser a
-  pure = undefined
+  pure a = Parser (\str -> Just (a, str))
 
   (<*>) :: Parser (a -> b) -> Parser a -> Parser b
-  (<*>) = undefined
-
+  (Parser func1) <*> (Parser func2) = Parser (mapping . func2)
+    where
+      mapping Nothing = Nothing
+      mapping (Just (a, rest)) = first ($ a) <$> func1 rest
 
 ----------------------------------------------------------------------
 -- Exercise 3
@@ -89,7 +98,14 @@ instance Applicative Parser where
 -- Nothing
 
 abParser :: Parser (Char, Char)
-abParser = undefined
+abParser = join <$> char 'b' <*> char 'a'
+    where join b a = (a, b)
+
+{--
+    where f str = case str of
+                   ('a':'b':rest) -> Just (('a', 'b'), rest)
+                   _ -> Nothing
+--}
 
 
 -- |
@@ -100,7 +116,16 @@ abParser = undefined
 -- Nothing
 
 abParser_ :: Parser ()
-abParser_ = undefined
+abParser_ = join <$> char 'b' <*> char 'a'
+    where join _ _ = ()
+{--
+    where f str = case str of
+                   ('a':'b':rest) -> Just ((), rest)
+                   _ -> Nothing
+--}
+
+--main :: IO()
+--main = putStr $ show $ runParser abParser_ "abctopu"
 
 
 -- |
@@ -109,8 +134,10 @@ abParser_ = undefined
 -- Just ([12,34],"")
 
 intPair :: Parser [Integer]
-intPair = undefined
-
+intPair = join <$> intEspacio <*> intEspacio
+    where
+        intEspacio = (\_ i -> [i]) <$> char ' ' <*> posInt
+        join = flip (++)
 
 ----------------------------------------------------------------------
 -- Exercise 4
@@ -118,17 +145,17 @@ intPair = undefined
 
 instance Alternative Parser where
   empty :: Parser a
-  empty = undefined
+  empty = Parser (const Nothing)
 
   (<|>) :: Parser a -> Parser a -> Parser a
-  (<|>) = undefined
-
+  (Parser f1) <|> (Parser f2) = Parser fresult
+      where fresult str = f1 str <|> f2 str
 
 ----------------------------------------------------------------------
 -- Exercise 5
 ----------------------------------------------------------------------
 
--- |
+-- 
 --
 -- >>> runParser intOrUppercase "342abcd"
 -- Just ((),"abcd")
@@ -138,4 +165,7 @@ instance Alternative Parser where
 -- Nothing
 
 intOrUppercase :: Parser ()
-intOrUppercase = undefined
+intOrUppercase = intPosEmpty <|> isUpperEmpty
+    where
+        isUpperEmpty = const () <$> satisfy isUpper
+        intPosEmpty = const () <$> posInt
