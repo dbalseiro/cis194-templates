@@ -11,6 +11,7 @@ import AParser
 
 -- base
 import Control.Applicative
+import Control.Arrow
 import Data.Char
 
 
@@ -26,8 +27,15 @@ import Data.Char
 -- Just ("","abcdeFGh")
 
 zeroOrMore :: Parser a -> Parser [a]
-zeroOrMore = undefined
+zeroOrMore (Parser f) = Parser f'
+    where f' str = case f str of
+                     Nothing -> Just ([], str)
+                     Just (a, rest) -> first (a :) <$> f' rest
 
+main :: IO()
+main = do
+    print $ runParser (oneOrMore (satisfy isUpper)) "abcdeFGh"
+    print $ runParser (oneOrMore (satisfy isUpper)) "ABCdEfgH"
 
 -- |
 --
@@ -36,8 +44,15 @@ zeroOrMore = undefined
 -- >>> runParser (oneOrMore (satisfy isUpper)) "abcdeFGh"
 -- Nothing
 
+atLeastOne :: Parser [a] -> Parser [a]
+atLeastOne (Parser f) = Parser f'
+    where f' str = case f str of
+                     Nothing -> Nothing
+                     Just ([], _) -> Nothing
+                     x -> x
+
 oneOrMore :: Parser a -> Parser [a]
-oneOrMore = undefined
+oneOrMore = atLeastOne . zeroOrMore
 
 
 ----------------------------------------------------------------------
@@ -46,6 +61,7 @@ oneOrMore = undefined
 
 spaces :: Parser String
 spaces = undefined
+
 
 
 -- |

@@ -1,14 +1,9 @@
 module AParser
-  ( Parser
-  , runParser
-  , satisfy
-  , char
-  , posInt
-  )
   where
 
 import Control.Applicative
 import Data.Char
+import Control.Arrow
 
 
 newtype Parser a =
@@ -42,10 +37,6 @@ inParser
   -> Parser a
   -> Parser b
 inParser f = Parser . f . runParser
-
-
-first :: (a -> b) -> (a, c) -> (b, c)
-first f (x, y) = (f x, y)
 
 
 instance Functor Parser where
