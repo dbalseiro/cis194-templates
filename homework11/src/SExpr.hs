@@ -32,11 +32,6 @@ zeroOrMore (Parser f) = Parser f'
                      Nothing -> Just ([], str)
                      Just (a, rest) -> first (a :) <$> f' rest
 
-main :: IO()
-main = do
-    print $ runParser (oneOrMore (satisfy isUpper)) "abcdeFGh"
-    print $ runParser (oneOrMore (satisfy isUpper)) "ABCdEfgH"
-
 -- |
 --
 -- >>> runParser (oneOrMore (satisfy isUpper)) "ABCdEfgH"
@@ -54,13 +49,17 @@ atLeastOne (Parser f) = Parser f'
 oneOrMore :: Parser a -> Parser [a]
 oneOrMore = atLeastOne . zeroOrMore
 
-
-----------------------------------------------------------------------
+---------------------------------------------------------------------
 -- Exercise 2
 ----------------------------------------------------------------------
 
 spaces :: Parser String
-spaces = undefined
+spaces = zeroOrMore $ satisfy isSpace
+
+main :: IO()
+main = do
+    print $ runParser spaces "abcdeFGh"
+    print $ runParser spaces "  ABCdEfgH"
 
 
 
@@ -75,8 +74,18 @@ spaces = undefined
 -- >>> runParser ident ""
 -- Nothing
 
+exactlyOne :: Parser a -> Parser [a]
+exactlyOne (Parser f) = Parser f'
+    where f' str = first (:[]) <$> f str
+
 ident :: Parser String
-ident = undefined
+ident = (++) <$> oneAlpha <*> manyAlphaNum
+    where
+        oneAlpha :: Parser String
+        oneAlpha = exactlyOne $ satisfy isAlpha
+
+        manyAlphaNum :: Parser String
+        manyAlphaNum = zeroOrMore $ satisfy isAlphaNum
 
 
 ----------------------------------------------------------------------
@@ -113,4 +122,26 @@ data SExpr
 -- Nothing
 
 parseSExpr :: Parser SExpr
-parseSExpr = undefined
+parseSExpr = consumeSpacesAndChar '(' *> (Comb <$> manySExpr) <* consumeSpacesAndChar ')' <* consumeSpaces
+         <|> intSexpr
+         <|> indentSexpr
+
+manySExpr :: Parser [SExpr]
+manySExpr = (++) <$> ((:[]) <$> parseSExpr) <*> Parser f
+    where 
+        f :: String -> Maybe ([SExpr], String)
+        f str = case runParser parseSExpr str of
+                  Nothing -> Just ([], str)
+                  _ -> runParser manySExpr str
+
+consumeSpacesAndChar :: Char -> Parser SExpr
+consumeSpacesAndChar c = (A . I) <$> ((++) <$> spaces <*> exactlyOne (char c))
+
+consumeSpaces :: Parser SExpr
+consumeSpaces = (A . I) <$> spaces
+
+intSexpr :: Parser SExpr
+intSexpr = consumeSpaces *> ((A . N) <$> posInt)
+
+indentSexpr :: Parser SExpr
+indentSexpr = consumeSpaces *> ((A . I) <$> ident)
