@@ -73,16 +73,15 @@ battle battleField =
         deaths :: Int -> Battlefield -> Battlefield
         deaths x bf = Battlefield (attackers bf + x) (defenders bf - (x + 1))
 
-main2 :: IO ()
-main2 = do
+main :: IO ()
+main = do
     putStr "Attacker Size: "
     attackerSize <- readLn :: IO Int
     putStr "Defender Size: "
     defenderSize <- readLn :: IO Int
     let initialBF = Battlefield attackerSize defenderSize
-    print initialBF
-    _ <- invade print initialBF
-    return ()
+    prob <- successProb initialBF
+    print prob
 
 consume :: Battlefield -> IO ()
 consume _ = putStr ""
@@ -109,5 +108,3 @@ successProb bf = do
     let successes = length $ filter ((== 0) . defenders) results
         prob = (fromIntegral successes / 1000) * 100
     return prob
-
-
